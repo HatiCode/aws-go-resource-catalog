@@ -7,15 +7,16 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/smithy-go/ptr"
 )
 
-func (b *Bucket) New(ctx context.Context, params *BucketInput) (*s3.CreateBucketOutput, error) {
+func (b *Bucket) Create(ctx context.Context, params *BucketInput) (*s3.CreateBucketOutput, error) {
 	if params == nil {
 		params = &BucketInput{}
 	}
 
 	// Create Config and Client
-	cfg, err := config.LoadDefaultConfig(context.TODO())
+	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -32,20 +33,13 @@ func (b *Bucket) New(ctx context.Context, params *BucketInput) (*s3.CreateBucket
 		return nil, err
 	}
 
-	// lc, err := b.CreateLifecycle(ctx, client, &LifecycleInput{
-	// 	BucketName:      params.Name,
-	// 	RetentionInDays: params.Lifecycle.LifecycleInput.RetentionInDays,
-	// })
-
-	// if err != nil {
-	// 	log.Fatalf("failed to set bucket lifecycle configuration, %v", err)
-	// 	return nil, err
-	// }
-
-	// return &BucketOutput{
-	// 	Name:     params.Name,
-	// 	Metadata: bc.ResultMetadata,
-	// }, nil
-
+	if b.BucketInput.Lifecycle != nil {
+		b.CreateLifecycle(ctx, client, &BucketLifecycleInput{
+			BucketName: ptr.String(b.BucketInput.Name),
+			RetentionInDays: b.BucketInput.Lifecycle.RetentionInDays,
+			StorageType: b.BucketInput.Lifecycle.StorageType,
+		})
+	}
+	
 	return bc, nil
 }
