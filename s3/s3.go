@@ -7,7 +7,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/aws/smithy-go/ptr"
 )
 
 func (b *Bucket) Create(ctx context.Context, params *BucketInput) (*s3.CreateBucketOutput, error) {
@@ -35,11 +34,10 @@ func (b *Bucket) Create(ctx context.Context, params *BucketInput) (*s3.CreateBuc
 
 	if b.BucketInput.Lifecycle != nil {
 		b.CreateLifecycle(ctx, client, &BucketLifecycleInput{
-			BucketName: ptr.String(b.BucketInput.Name),
 			RetentionInDays: b.BucketInput.Lifecycle.RetentionInDays,
-			StorageType: b.BucketInput.Lifecycle.StorageType,
+			StorageType:     b.BucketInput.Lifecycle.StorageType,
 		})
 	}
-	
+
 	return bc, nil
 }
